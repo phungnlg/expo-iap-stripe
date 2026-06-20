@@ -106,12 +106,3 @@ flowchart TD
     R[Refund or cancel\non either store] -->|webhook| BE
     BE -->|flip status| DB
 ```
-
-## Where this lives in the POC
-
-This repo demonstrates the native side of the flow with a mock backend:
-
-- `src/services/ReceiptValidator.ts` - server-side receipt validation (Apple,
-  Google, Stripe)
-- `src/services/SubscriptionManager.ts` - the single entitlement record
-- `src/mock/mockBackend.ts` - simulated server endpoints the clients read from
