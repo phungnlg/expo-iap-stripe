@@ -18,31 +18,45 @@
 - **Expected:** page scrolls to the 32 exercise tiles (incl. free Number Memory / Stroop) + Start.
 - **Actual:** page does not move at all. Verified 2x adb swipe + 2x Maestro swipe (50%,80%->50%,20%). Free user can never open an exercise.
 - **Note:** tapping a category (e.g. Memory) correctly filters the list in the DOM, but filtered tiles are still below the unscrollable fold.
-- **Screens:** `02-lab.png`, `13-lab-after-swipe.png`, `15-after-mswipe.png` (identical after scrolls), `14-memory-tapped.png`, `32-start-training.png` (Home CTA -> same stuck page).
+- **Screens:**
+
+| Lab (top, won't scroll) | After 2x swipe (identical) | Home CTA -> same stuck page |
+|---|---|---|
+| ![Lab](screenshots/02-lab.png) | ![After swipe](screenshots/15-after-mswipe.png) | ![Start Training](screenshots/32-start-training.png) |
 
 ### BUG-2 (Medium) - Blank screen flash for ~2-3s on launch / tab switch
 - **Steps:** cold-launch the app, watch the screen.
 - **Expected:** splash holds until content paints, or a skeleton shows.
 - **Actual:** native splash auto-hides at 2s (`SplashScreen.launchShowDuration:2000`), but the WebView body is still unpainted -> blank screen w/ spinner for ~1-2s more.
-- **Screens:** first `01-home.png` capture (fully blank w/ spinner) vs. re-capture after a content-wait (renders fine).
+- **Screens:** Home renders correctly once content paints:
+
+![Home](screenshots/01-home.png)
 
 ### BUG-3 (Medium) - Chat FAB overlaps the "Profile" bottom-nav tab
 - **Steps:** any screen with bottom nav -> look bottom-right.
 - **Expected:** chat launcher clear of nav targets.
 - **Actual:** Professor 5-Brain avatar bubble sits over the Profile tab -> mis-tap / blocked target.
-- **Screens:** `08-profile.png`, `01-home.png`.
+- **Screens:** avatar bubble over Profile tab (bottom-right):
+
+![Profile](screenshots/08-profile.png)
 
 ### BUG-4 (Low) - Professor 5-Brain chat opens with an empty body
 - **Steps:** tap the chat FAB.
 - **Expected:** a welcome/intro message.
 - **Actual:** header + input + disclaimer only; conversation area blank.
-- **Screens:** `09-chat-open.png`.
+- **Screens:** empty conversation body on open:
+
+![Chat](screenshots/09-chat-open.png)
 
 ### Verified OK (not bugs)
 - No crashes/ANRs across smoke + deep + force-stop/relaunch + network toggles (only a benign `cr_AutofillHintsService` chromium log).
-- Offline: relaunched with Wi-Fi + data off, Home rendered from bundled assets, no error. `30-no-network.png`.
-- All 5 tabs load; Test = fullscreen Quick Check-In with back arrow, nav hidden as intended. `06-test.png`, `07-my-brain.png`.
-- Portrait-locked (forced rotation ignored) - acceptable. `31-landscape.png`.
+- Offline: relaunched with Wi-Fi + data off, Home rendered from bundled assets, no error.
+- All 5 tabs load; Test = fullscreen Quick Check-In with back arrow, nav hidden as intended.
+- Portrait-locked (forced rotation ignored) - acceptable.
+
+| Offline (no network) | Test - Quick Check-In | My Brain |
+|---|---|---|
+| ![Offline](screenshots/30-no-network.png) | ![Test](screenshots/07-test.png) | ![My Brain](screenshots/07-my-brain.png) |
 
 ---
 
@@ -94,14 +108,13 @@
 ## Coverage gap (be transparent)
 Actual **gameplay** was never reached - blocked by BUG-1 plus zero-bounds WebView a11y (no coordinate tap). **Login/signup, in-app purchase, push, deep links** untested. Recommend re-running gameplay + auth suites once BUG-1 is fixed.
 
-## Key screens
+## All screenshots
 
-| Home | Lab catalog (BUG-1) | Profile (FAB overlap, BUG-3) |
-|---|---|---|
-| ![Home](screenshots/01-home.png) | ![Lab](screenshots/02-lab.png) | ![Profile](screenshots/08-profile.png) |
+All 21 captures are in [`screenshots/`](screenshots/).
 
-| Chat empty (BUG-4) | Offline OK | Quick Check-In (Test) |
-|---|---|---|
-| ![Chat](screenshots/09-chat-open.png) | ![Offline](screenshots/30-no-network.png) | ![Test](screenshots/07-test.png) |
+## Re-run
 
-All 21 captures in [`screenshots/`](screenshots/).
+```bash
+~/.maestro/bin/maestro test qa.yaml       # smoke: 5 tabs + chat
+~/.maestro/bin/maestro test qa_deep.yaml  # deep: exposes BUG-1
+```
