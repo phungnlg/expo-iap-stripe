@@ -51,3 +51,15 @@
 - **Screens:** empty conversation body on open:
 
 ![Chat](screenshots/09-chat-open.png)
+
+### BUG-5 (Medium) - Lab title overlaps the flask icon and is clipped under the status bar
+- **Steps:**
+  1. Tap **Lab**.
+  2. Look at the top heading "Pick an Exercise. Start Training."
+- **Expected:** the heading sits clear of the lab/flask icon and below the status bar with safe-area padding.
+- **Actual:** the heading text runs over the flask icon (top-left), and the first line is clipped under the system status bar / notch - no top safe-area inset.
+- **Impact:** broken, unreadable page header on the main catalog screen.
+- **Likely cause:** `StatusBar.overlaysWebView: true` with no `env(safe-area-inset-top)` padding, plus the title and icon sharing a container without spacing (same root family as BUG-1).
+- **Screens:** title over flask icon + clipped at top:
+
+![Lab title overlap](screenshots/lab-title-overlap.png)
