@@ -63,3 +63,29 @@
 - **Screens:** title over flask icon + clipped at top:
 
 ![Lab title overlap](screenshots/lab-title-overlap.png)
+
+---
+
+## 3. Top 3 concerns (inferred from behavior) + fix approach
+
+### Concern 1 - The overlap/scroll defects are one systemic viewport + safe-area bug
+- **Why I think so:** BUG-1 (catalog won't scroll), BUG-2 (chat bubble/input overlap), and BUG-5 (title clipped under the status bar) all share a root. The config sets `StatusBar.overlaysWebView: true` and an immersive splash, and iOS explicitly sets `scrollEnabled: true` / `contentInset: "never"` while Android sets **no** scroll/inset config. Classic symptom: a `height: 100vh` (or `100dvh`) container under a transparent overlaid status bar miscalculates available height with no safe-area padding, so content clips, overlaps, and has nowhere to scroll.
+- **How I'd fix:**
+  1. Connect Chrome DevTools (`chrome://inspect`) to the running WebView and inspect each screen's scroll container computed height vs. content height. (Prod has `webContentsDebuggingEnabled:false`, so build a debug variant.)
+  2. Repro in Chrome mobile emulation at 412x915; replace `100vh` with `100dvh` + `env(safe-area-inset-*)` padding, or set `overflow-y:auto; min-height:0` on the flex scroll child.
+  3. Re-test every long page (Lab, My Brain, Profile sub-tabs, chat), not just the catalog - one fix likely clears BUG-1/2/5.
+
+### Concern 2 - Core loop reachable only by a side path; the main entry points dead-end
+- **Why I think so:** the playable engine works - an exercise launches and runs fine via **Test -> Quick Check-In -> Start Round**. But both *primary* entry points (Lab catalog tile, Home "Start Training") dead-end on the unscrollable catalog (BUG-1), so a normal user can't start a named exercise. That a build shipped with the main CTA broken while a side path works suggests gameplay launch isn't covered by automated/device testing on this form factor.
+- **How I'd fix:**
+  1. After Concern 1, add a smoke test that launches each free exercise from the catalog and asserts the game canvas renders + score updates - run it in CI on a real-device cloud (arm64).
+  2. Add `data-testid` hooks so the test is stable despite WebView a11y limitations (a11y nodes report zero bounds).
+  3. Gate releases on that smoke test so "can't start a game from the catalog" can never ship again.
+
+### Concern 3 - Security/config hygiene on the Android WebView bridge
+- **Why I think so:** `android.allowMixedContent: true` lets an HTTPS page load HTTP sub-resources (MITM/inject risk). The app also bundles `@capacitor/push-notifications` (push token handling) and `@capacitor/preferences` (local storage of session/state). Good signs: `cleartext:false`, `webContentsDebuggingEnabled:false`. But mixed content + a Capacitor native bridge is the classic injection surface.
+- **How I'd fix:**
+  1. Set `allowMixedContent: false`; fix any HTTP asset URLs to HTTPS.
+  2. Confirm any external links open via `@capacitor/browser` (system tab), not in the app WebView, and restrict the bridge to the bundled origin (`server.androidScheme: https` is set - verify no remote allowlist).
+  3. Verify push token + any auth/session in `@capacitor/preferences` is not written to world-readable storage; review what the bridge exposes to the web layer.
+  4. Add x86_64 ABI so security/QA tooling can run in emulators.
