@@ -44,14 +44,6 @@
 
 ![Profile](screenshots/08-profile.png)
 
-### BUG-4 (Low) - Professor 5-Brain chat opens with an empty body
-- **Steps:** tap the chat FAB.
-- **Expected:** a welcome/intro message.
-- **Actual:** header + input + disclaimer only; conversation area blank.
-- **Screens:** empty conversation body on open:
-
-![Chat](screenshots/09-chat-open.png)
-
 ### BUG-5 (Medium) - Lab title overlaps the flask icon and is clipped under the status bar
 - **Steps:**
   1. Tap **Lab**.
